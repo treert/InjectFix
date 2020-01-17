@@ -504,6 +504,10 @@ namespace IFix
                                     isCompilerGeneratedPlainObject(mr.DeclaringType)))
                                 {
                                     var md = mr as MethodDefinition;
+                                    if (md == null)//闭包中调用一个泛型，在unity2018的.net 3.5设置下，编译器是先生成一个泛型的闭包实现，然后实例化，很奇怪的做法，老版本unity，新unity的.net 4.0设置都不会这样，先返回false，不支持这种编译器
+                                    {
+                                        return false;
+                                    }
                                     if (md.Body != null && !checkILAndGetOffset(md, md.Body.Instructions))
                                     {
                                         //Console.WriteLine("check " + md + " fail il = " + md.Body.Instructions[p]
@@ -1409,13 +1413,8 @@ namespace IFix
                                     {
                                         code[code.Count - 2] = new Core.Instruction
                                         {
-                                            Code = Core.Code.Ldobj,
-                                            Operand = lastInstruction.Operand,
-                                        };
-                                        code[code.Count - 1] = new Core.Instruction
-                                        {
-                                            Code = Core.Code.Box,
-                                            Operand = lastInstruction.Operand,
+                                            Code = Core.Code.Nop,
+                                            Operand = methodToCall.Parameters.Count,
                                         };
                                     }
                                     //code.RemoveAt(code.Count - 1);
@@ -1971,10 +1970,12 @@ namespace IFix
             //适配器参数类型，不是强制noBaselize的话，引用类型，复杂非引用值类型，均转为object
             List<TypeReference> wrapperParameterTypes = new List<TypeReference>();
             List<bool> isOut = new List<bool>();
+            List<bool> isIn = new List<bool>();
             //List<ParameterAttributes> paramAttrs = new List<ParameterAttributes>();
             if (!md.IsStatic && !isClosure && !isInterfaceBridge) //匿名类闭包的this是自动传，不需要显式参数
             {
                 isOut.Add(false);
+                isIn.Add(false);
                 //paramAttrs.Add(Mono.Cecil.ParameterAttributes.None);
                 if (method.DeclaringType.IsValueType)
                 {
@@ -1993,11 +1994,16 @@ namespace IFix
             for (int i = 0; i < method.Parameters.Count; i++)
             {
                 isOut.Add(method.Parameters[i].IsOut);
+                isIn.Add(method.Parameters[i].IsIn);
                 //paramAttrs.Add(method.Parameters[i].Attributes);
                 var paramType = method.Parameters[i].ParameterType;
                 if (paramType.IsGenericParameter)
                 {
                     paramType = (paramType as GenericParameter).ResolveGenericArgument(method.DeclaringType);
+                }
+                if (paramType.IsRequiredModifier)
+                {
+                    paramType = (paramType as RequiredModifierType).ElementType;
                 }
                 parameterTypes.Add(paramType);
                 wrapperParameterTypes.Add(noBaselize ? paramType : wrapperParamerterType(paramType));
@@ -2036,7 +2042,7 @@ namespace IFix
                     for (int j = 0; j < wrapperParameterTypes.Count; j++)
                     {
                         if (!wrapperParameterTypes[j].IsSameType(wrapperMethod.Parameters[j].ParameterType)
-                            || isOut[j] != wrapperMethod.Parameters[j].IsOut)
+                            || isOut[j] != wrapperMethod.Parameters[j].IsOut || isIn[j] != wrapperMethod.Parameters[j].IsIn)
                         {
                             paramMatch = false;
                             break;
@@ -2059,9 +2065,11 @@ namespace IFix
 
             for (int i = 0; i < parameterTypes.Count; i++)
             {
-                refPos[i] = parameterTypes[i].IsByReference ? refCount++ : -1;
-                wrapperMethod.Parameters.Add(new ParameterDefinition("P" + i, isOut[i] ? ParameterAttributes.Out
-                    : ParameterAttributes.None, wrapperParameterTypes[i].TryImport(assembly.MainModule)));
+                refPos[i] = (parameterTypes[i].IsByReference) ? refCount++ : -1;
+                var parameterAttributes = ParameterAttributes.None;
+                if (isOut[i]) parameterAttributes |= ParameterAttributes.Out;
+                if (isIn[i]) parameterAttributes |= ParameterAttributes.In;
+                wrapperMethod.Parameters.Add(new ParameterDefinition("P" + i, parameterAttributes, wrapperParameterTypes[i].TryImport(assembly.MainModule)));
             }
 
             var ilProcessor = wrapperMethod.Body.GetILProcessor();
@@ -2256,7 +2264,7 @@ namespace IFix
                 // Ref param
                 for (int i = 0; i < parameterTypes.Count; i++)
                 {
-                    if (parameterTypes[i].IsByReference)
+                    if (parameterTypes[i].IsByReference && ! isIn[i])
                     {
                         emitLdarg(instructions, ilProcessor, i + 1);
                         var paramRawType = tryGetUnderlyingType(getRawType(parameterTypes[i]));

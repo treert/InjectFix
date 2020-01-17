@@ -92,9 +92,9 @@ namespace IFix.Editor
             Process hotfix_injection = new Process();
             hotfix_injection.StartInfo.FileName = mono_path;
 #if UNITY_5_6_OR_NEWER
-            hotfix_injection.StartInfo.Arguments = "--runtime=v4.0.30319 \"" + inject_tool_path + "\" \""
+            hotfix_injection.StartInfo.Arguments = "--debug --runtime=v4.0.30319 \"" + inject_tool_path + "\" \""
 #else
-            hotfix_injection.StartInfo.Arguments = "\"" + inject_tool_path + "\" \""
+            hotfix_injection.StartInfo.Arguments = "--debug \"" + inject_tool_path + "\" \""
 #endif
                 + string.Join("\" \"", args.ToArray()) + "\"";
             hotfix_injection.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
@@ -149,7 +149,16 @@ namespace IFix.Editor
                 UnityEngine.Debug.LogError("compiling or playing");
                 return;
             }
-            InjectAllAssemblys();
+            EditorUtility.DisplayProgressBar("Inject", "injecting...", 0);
+            try
+            {
+                InjectAllAssemblys();
+            }
+            catch(Exception e)
+            {
+                UnityEngine.Debug.LogError(e);
+            }
+            EditorUtility.ClearProgressBar();
         }
 
         public static bool AutoInject = true; //可以在外部禁用掉自动注入
@@ -775,21 +784,30 @@ namespace IFix.Editor
         [MenuItem("InjectFix/Fix", false, 2)]
         public static void Patch()
         {
-            foreach (var assembly in injectAssemblys)
+            EditorUtility.DisplayProgressBar("Generate Patch for Edtior", "patching...", 0);
+            try
             {
-                var dll = string.Format("./Library/ScriptAssemblies/{0}.dll", assembly);
-                if(File.Exists(dll) == false)
+                foreach (var assembly in injectAssemblys)
                 {
-                    dll = string.Format("./Assets/MyLib/{0}.dll", assembly);
-                    if(File.Exists(dll) == false)
-                    {
-                        throw new Exception("can not find dll: " + assembly);
-                    }
-                }
+	                var dll = string.Format("./Library/ScriptAssemblies/{0}.dll", assembly);
+	                if(File.Exists(dll) == false)
+	                {
+	                    dll = string.Format("./Assets/MyLib/{0}.dll", assembly);
+	                    if(File.Exists(dll) == false)
+	                    {
+	                        throw new Exception("can not find dll: " + assembly);
+	                    }
+	                }
 
-                GenPatch(assembly, dll, 
-                    "./Assets/Plugins/IFix.Core.dll", string.Format("{0}.patch.bytes", assembly));
+	                GenPatch(assembly, dll, 
+	                    "./Assets/Plugins/IFix.Core.dll", string.Format("{0}.patch.bytes", assembly));
+                }
             }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(e);
+            }
+            EditorUtility.ClearProgressBar();
         }
 
 #if UNITY_2018_3_OR_NEWER
@@ -797,7 +815,14 @@ namespace IFix.Editor
         public static void CompileToAndroid()
         {
             EditorUtility.DisplayProgressBar("Generate Patch for Android", "patching...", 0);
-            GenPlatformPatch(Platform.android, "");
+            try
+            {
+                GenPlatformPatch(Platform.android, "");
+            }
+            catch(Exception e)
+            {
+                UnityEngine.Debug.LogError(e);
+            }
             EditorUtility.ClearProgressBar();
         }
 
@@ -805,7 +830,14 @@ namespace IFix.Editor
         public static void CompileToIOS()
         {
             EditorUtility.DisplayProgressBar("Generate Patch for IOS", "patching...", 0);
-            GenPlatformPatch(Platform.ios, "");
+            try
+            {
+                GenPlatformPatch(Platform.ios, "");
+            }
+            catch(Exception e)
+            {
+                UnityEngine.Debug.LogError(e);
+            }
             EditorUtility.ClearProgressBar();
         }
 #endif

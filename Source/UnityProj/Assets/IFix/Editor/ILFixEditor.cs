@@ -776,7 +776,7 @@ namespace IFix.Editor
             File.Delete(processCfgPath);
 
             // 直接拷贝到IFix/Resources里去
-            File.Copy(patchPath, "Assets/IFix/Resources/" + patchPath, true);
+            // File.Copy(patchPath, "Assets/IFix/Resources/" + patchPath, true);
 
             AssetDatabase.Refresh();
         }
@@ -800,7 +800,7 @@ namespace IFix.Editor
 	                }
 
 	                GenPatch(assembly, dll, 
-	                    "./Assets/Plugins/IFix.Core.dll", string.Format("{0}.patch.bytes", assembly));
+	                    "./Assets/Plugins/IFix.Core.dll", string.Format("./Assets/IFix/Resources/{0}.patch.bytes", assembly));
                 }
             }
             catch (Exception e)

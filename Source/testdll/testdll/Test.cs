@@ -17,6 +17,11 @@ namespace testdll
         }
     }
 
+    public struct StructA
+    {
+        public int a;
+    }
+
     public class BB : Temp<int>
     {
 
@@ -98,6 +103,15 @@ namespace testdll
                 var obj = new Temp<Test>();
             }
 
+        }
+
+        [IFix.Patch]
+        public static int TestStruct()
+        {
+            StructA a = new StructA();
+            // StructA a;
+            a.a = 1;
+            return a.a;
         }
     }
 }

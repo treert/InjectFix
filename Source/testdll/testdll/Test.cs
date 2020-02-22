@@ -51,6 +51,30 @@ namespace testdll
 
         }
 
+        public Func<int> TestAction()
+        {
+            int a=0;
+            Func<int> f = () =>
+            {
+                return a++;
+                
+            };
+            return f;
+        }
+
+        public int TestSet()
+        {
+            int a = 1, b = 1;
+            Set(out a, ref b);
+            return a + b;
+        }
+
+        public void Set(out int a, ref int b)
+        {
+            a = 2;
+            b = 3;
+        }
+
         private void hhh()
         {
 

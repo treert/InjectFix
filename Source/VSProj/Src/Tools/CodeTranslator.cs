@@ -152,6 +152,7 @@ namespace IFix
         //再补丁新增一个对原生方法的引用
         int addExternType(TypeReference type, TypeReference contextType = null)
         {
+            if (type.IsRequiredModifier) return addExternType((type as RequiredModifierType).ElementType, contextType);
             if (type.IsGenericParameter || type.HasGenericArgumentFromMethod())
             {
                 throw new InvalidProgramException("try to use a generic type definition");
@@ -1070,7 +1071,23 @@ namespace IFix
                 code.Add(new Core.Instruction { Code = Core.Code.StackSpace, Operand = (body.Variables.Count << 16)
                     | body.MaxStackSize }); // local | maxstack
 
-                //TODO: locals init，复杂值类型要new，引用类型要留空位
+                foreach(var variable in body.Variables)
+                {
+                    if (variable.VariableType.IsValueType && !variable.VariableType.IsPrimitive)
+                    {
+                        code.Add(new Core.Instruction
+                        {
+                            Code = Core.Code.Ldloca,
+                            Operand = variable.Index,
+                        });
+
+                        code.Add(new Core.Instruction
+                        {
+                            Code = Core.Code.Initobj,
+                            Operand = addExternType(variable.VariableType)
+                        });
+                    }
+                }
 
                 Core.ExceptionHandler[] exceptionHandlers = new Core.ExceptionHandler[body.ExceptionHandlers.Count];
 
@@ -1105,7 +1122,7 @@ namespace IFix
 
                 bool typeofDetected = false;
 
-                Core.Instruction operand;
+                Core.Instruction operand = new Core.Instruction();
                 for (int i = 0; i < msIls.Count; i++)
                 {
                     var msIl = msIls[i];
@@ -3272,6 +3289,10 @@ namespace IFix
                     if (paramType.IsGenericParameter)
                     {
                         paramType = (paramType as GenericParameter).ResolveGenericArgument(method.DeclaringType);
+                    }
+                    if (paramType.IsRequiredModifier)
+                    {
+                        paramType = (paramType as RequiredModifierType).ElementType;
                     }
                     if (!externTypeToId.ContainsKey(paramType))
                     {

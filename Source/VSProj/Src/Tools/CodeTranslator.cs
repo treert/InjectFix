@@ -3196,7 +3196,7 @@ namespace IFix
                     }
                     else
                     {
-                        getWrapperMethod(wrapperType, anonObjOfWrapper, invoke, true, true);
+                        getWrapperMethod(wrapperType, anonObjOfWrapper, invoke.TryImport(t.Module), true, true);
                     }
                 }
                 else if (td.IsInterface)

@@ -13,8 +13,6 @@ namespace test2dll
 
         private TestDelegage func;
 
-        int count = 0;
-
         public void Register(TestDelegage f)
         {
             func = f;
@@ -22,14 +20,7 @@ namespace test2dll
 
         public void Add(List<int> list, bool add)
         {
-            if (add)
-            {
-                list.Add(count++);
-            }
-            else if(list.Count > 0)
-            {
-                list.Remove(list.Count - 1);
-            }
+            func?.Invoke(list, add);
         }
     }
 }

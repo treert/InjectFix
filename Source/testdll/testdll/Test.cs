@@ -61,9 +61,13 @@ namespace testdll
 
     public class Test
     {
+        public List<int> m_list = new List<int>();
         public  Test()
         {
-
+            test2dll.Test2.single.Register((ls, add) =>
+            {
+                ls.Clear(); ls.Add(1);
+            });
         }
 
         public Func<int> TestAction()
@@ -100,11 +104,16 @@ namespace testdll
 
         }
 
-        //[Patch]
-        //public int Add(int a, int b)
-        //{
-        //    return a + b;
-        //}
+        // [Patch]
+        public int Add(int a, int b)
+        {
+            //test2dll.Test2.single.Register((ls, add) =>
+            //{
+            //    ls.Clear(); ls.Add(2);
+            //});
+            test2dll.Test2.single.Add(m_list,true);
+            return m_list[0];
+        }
 
         //[Patch]
         //public static int Min(int a, int b)
@@ -118,10 +127,10 @@ namespace testdll
         //    return Math.Min(a, b);
         //}
 
-        public int Add(int a, int b)
-        {
-            return a + b + 1000;
-        }
+        //public int Add(int a, int b)
+        //{
+        //    return a + b + 1000;
+        //}
 
         public static int Min(int a, int b)
         {

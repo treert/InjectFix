@@ -1,8 +1,23 @@
 ﻿using IFix;
 using System;
+using System.Collections.Generic;
 
 namespace testdll
 {
+    public delegate int TestDelegate(int a, bool b);
+    [CustomBridge]
+    public static class AdditionalBridge
+    {
+        static List<Type> bridge = new List<Type>()
+        {
+            typeof(TestDelegate),
+            typeof(test2dll.TestDelegage),
+            typeof(IEnumerator<long>),
+            typeof(IEnumerable<double>),
+            typeof(Action<int, float, double, char>),
+        };
+    }
+
     public class Temp<T>where T:new()
     {
         public T obj;

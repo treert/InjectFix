@@ -1071,7 +1071,9 @@ namespace IFix
                 code.Add(new Core.Instruction { Code = Core.Code.StackSpace, Operand = (body.Variables.Count << 16)
                     | body.MaxStackSize }); // local | maxstack
 
-                foreach(var variable in body.Variables)
+                int offsetAdd = 0;
+
+                foreach (var variable in body.Variables)
                 {
                     if (variable.VariableType.IsValueType && !variable.VariableType.IsPrimitive)
                     {
@@ -1086,7 +1088,18 @@ namespace IFix
                             Code = Core.Code.Initobj,
                             Operand = addExternType(variable.VariableType)
                         });
+                        offsetAdd += 2;
                     }
+                }
+
+                if (offsetAdd > 0)
+                {
+                    var ilNewOffset = new Dictionary<Instruction, int>();
+                    foreach (var kv in ilOffset)
+                    {
+                        ilNewOffset[kv.Key] = kv.Value + offsetAdd;
+                    }
+                    ilOffset = ilNewOffset;
                 }
 
                 Core.ExceptionHandler[] exceptionHandlers = new Core.ExceptionHandler[body.ExceptionHandlers.Count];

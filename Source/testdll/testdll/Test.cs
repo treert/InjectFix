@@ -4,19 +4,19 @@ using System.Collections.Generic;
 
 namespace testdll
 {
-    //public delegate int TestDelegate(int a, bool b);
-    ////[CustomBridge]
-    //public static class AdditionalBridge
-    //{
-    //    static List<Type> bridge = new List<Type>()
-    //    {
-    //        typeof(TestDelegate),
-    //        typeof(test2dll.TestDelegage),
-    //        typeof(IEnumerator<long>),
-    //        typeof(IEnumerable<double>),
-    //        typeof(Action<int, float, double, char>),
-    //    };
-    //}
+    public delegate int TestDelegate(int a, bool b);
+    [CustomBridge]
+    public static class AdditionalBridge
+    {
+        static List<Type> bridge = new List<Type>()
+        {
+            //typeof(TestDelegate),
+            typeof(test2dll.TestDelegage),
+            //typeof(IEnumerator<long>),
+            //typeof(IEnumerable<double>),
+            //typeof(Action<int, float, double, char>),
+        };
+    }
 
     public class Temp<T> where T : new()
     {
@@ -97,7 +97,6 @@ namespace testdll
 
         private void hhh(int a)
         {
-
         }
 
         public static T Def<T>() where T : new()
@@ -128,21 +127,31 @@ namespace testdll
         [IFix.Patch]
         public int TestDll2()
         {
+            ////如果有其他地方调用了类似的代码，就可以正常运行
             //test2dll.Test2.single.Register((ls, add) =>
             //{
             //    ls.Clear(); ls.Add(200);
             //});
 
+            ////必须加CustomBridge
             //test2dll.Test2.single.Register(TestDll2_func);
+
+            test2dll.Test2.single.Register(TestDll2_func_2);
 
             test2dll.Test2.single.Add(m_list, true);
             return m_list[0];
         }
 
+        private static void TestDll2_func_2(List<int> list, bool add)
+        {
+            list.Clear(); list.Add(100000);
+        }
+
+
         //[IFix.Interpret]
         //private static void TestDll2_func(List<int> list, bool add)
         //{
-        //    list.Clear();list.Add(100);
+        //    list.Clear(); list.Add(100);
         //}
 
 #if true

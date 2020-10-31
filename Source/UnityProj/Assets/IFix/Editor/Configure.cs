@@ -114,7 +114,7 @@ namespace IFix
             return (from assembly in AppDomain.CurrentDomain.GetAssemblies()
                     where !(assembly.ManifestModule is System.Reflection.Emit.ModuleBuilder)
                         && (assembly.GetName().Name == searchAssembly)
-                    where assembly.CodeBase.IndexOf("ScriptAssemblies") != -1
+                    // where assembly.CodeBase.IndexOf("ScriptAssemblies") != -1
                     from type in assembly.GetTypes()
                     from method in type.GetMethods(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public
                         | BindingFlags.NonPublic)
@@ -126,7 +126,7 @@ namespace IFix
             return (from assembly in AppDomain.CurrentDomain.GetAssemblies()
                     where !(assembly.ManifestModule is System.Reflection.Emit.ModuleBuilder)
                         && (assembly.GetName().Name == searchAssembly)
-                    where assembly.CodeBase.IndexOf("ScriptAssemblies") != -1
+                    //where assembly.CodeBase.IndexOf("ScriptAssemblies") != -1
                     from type in assembly.GetTypes()
                     where type.IsDefined(tagType, false)
                     select type

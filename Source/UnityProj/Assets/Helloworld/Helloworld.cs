@@ -16,41 +16,62 @@ public class Helloworld : MonoBehaviour {
     // check and load patchs
     void Start () {
         VirtualMachine.Info = (s) => UnityEngine.Debug.Log(s);
+        TextAsset patch;
         //try to load patch for Assembly-CSharp.dll
-        var patch = Resources.Load<TextAsset>("Assembly-CSharp.patch");
+        //patch = Resources.Load<TextAsset>("Assembly-CSharp.patch");
+        //if (patch != null)
+        //{
+        //    UnityEngine.Debug.Log("loading Assembly-CSharp.patch ...");
+        //    var sw = Stopwatch.StartNew();
+        //    PatchManager.Load(new MemoryStream(patch.bytes));
+        //    UnityEngine.Debug.Log("patch Assembly-CSharp.patch, using " + sw.ElapsedMilliseconds + " ms");
+        //}
+        ////try to load patch for Assembly-CSharp-firstpass.dll
+        //patch = Resources.Load<TextAsset>("Assembly-CSharp-firstpass.patch");
+        //if (patch != null)
+        //{
+        //    UnityEngine.Debug.Log("loading Assembly-CSharp-firstpass ...");
+        //    var sw = Stopwatch.StartNew();
+        //    PatchManager.Load(new MemoryStream(patch.bytes));
+        //    UnityEngine.Debug.Log("patch Assembly-CSharp-firstpass, using " + sw.ElapsedMilliseconds + " ms");
+        //}
+        //try to load patch for testdll.dll
+        patch = Resources.Load<TextAsset>("testdll.patch");
         if (patch != null)
         {
-            UnityEngine.Debug.Log("loading Assembly-CSharp.patch ...");
+            UnityEngine.Debug.Log("loading testdll ...");
             var sw = Stopwatch.StartNew();
-            PatchManager.Load(new MemoryStream(patch.bytes));
-            UnityEngine.Debug.Log("patch Assembly-CSharp.patch, using " + sw.ElapsedMilliseconds + " ms");
-        }
-        //try to load patch for Assembly-CSharp-firstpass.dll
-        patch = Resources.Load<TextAsset>("Assembly-CSharp-firstpass.patch");
-        if (patch != null)
-        {
-            UnityEngine.Debug.Log("loading Assembly-CSharp-firstpass ...");
-            var sw = Stopwatch.StartNew();
-            PatchManager.Load(new MemoryStream(patch.bytes));
-            UnityEngine.Debug.Log("patch Assembly-CSharp-firstpass, using " + sw.ElapsedMilliseconds + " ms");
-        }
+            try
+            {
+                PatchManager.Load(new MemoryStream(patch.bytes));
+            }
+            catch(System.Exception e)
+            {
+                UnityEngine.Debug.Log("loading testdll error happend: " + e);
+            }
 
+            UnityEngine.Debug.Log("patch testdll, using " + sw.ElapsedMilliseconds + " ms");
+        }
         test();
     }
 
-    [IFix.Patch]
+    // [IFix.Patch]
     void test()
     {
-        var calc = new IFix.Test.Calculator();
-        //test calc.Add
-        UnityEngine.Debug.Log("10 + 9 = " + calc.Add(10, 9));
-        //test calc.Sub
-        UnityEngine.Debug.Log("10 - 2 = " + calc.Sub(10, 2));
+        //var calc = new IFix.Test.Calculator();
+        ////test calc.Add
+        //UnityEngine.Debug.Log("10 + 9 = " + calc.Add(10, 9));
+        ////test calc.Sub
+        //UnityEngine.Debug.Log("10 - 2 = " + calc.Sub(10, 2));
 
-        var anotherClass = new AnotherClass(1);
-        //AnotherClass in Assembly-CSharp-firstpass.dll
-        var ret = anotherClass.Call(i => i + 1);
-        UnityEngine.Debug.Log("anotherClass.Call, ret = " + ret);
+        //var anotherClass = new AnotherClass(1);
+        ////AnotherClass in Assembly-CSharp-firstpass.dll
+        //var ret = anotherClass.Call(i => i + 1);
+        //UnityEngine.Debug.Log("anotherClass.Call, ret = " + ret);
+
+        var test = new testdll.Test();
+        UnityEngine.Debug.Log("2 + 10 = " + test.Add(2, 10));
+        UnityEngine.Debug.Log("Min(2, 10) = " + testdll.Test.Min(2, 10));
 
         //test for InjectFix/Fix(Android) InjectFix/Fix(IOS) Menu for unity 2018.3 or newer
 #if UNITY_2018_3_OR_NEWER

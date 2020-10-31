@@ -162,6 +162,7 @@ namespace IFix.Editor
                 UnityEngine.Debug.LogError(e);
             }
             EditorUtility.ClearProgressBar();
+            UnityEditor.EditorUtility.DisplayDialog("Inject", "finished", "OK");
         }
 
         public static bool AutoInject = true; //可以在外部禁用掉自动注入
@@ -285,7 +286,7 @@ namespace IFix.Editor
             {
 
                 var core_path = "./Assets/Plugins/IFix.Core.dll";
-                var assembly_path = string.Format("./Library/{0}/{1}.dll", targetAssembliesFolder, assembly);
+                var assembly_path = _GetDllPath(assembly);
                 var patch_path = string.Format("./{0}.ill.bytes", assembly);
                 List<string> args = new List<string>() { "-inject", core_path, assembly_path,
                     processCfgPath, patch_path, assembly_path };
@@ -344,8 +345,9 @@ namespace IFix.Editor
         //另外可以直接调用InjectAssembly对其它程序集进行注入。
         static string[] injectAssemblys = new string[]
         {
-            "Assembly-CSharp",
-            "Assembly-CSharp-firstpass"
+            "testdll",
+            //"Assembly-CSharp",
+            //"Assembly-CSharp-firstpass",
         };
 
         /// <summary>
@@ -663,7 +665,7 @@ namespace IFix.Editor
             foreach (var assembly in injectAssemblys)
             {
                 GenPatch(assembly, string.Format("{0}/{1}.dll", outputDir, assembly),
-                    "./Assets/Plugins/IFix.Core.dll", string.Format("{0}{1}.patch.bytes", patchOutputDir, assembly));
+                    "./Assets/Plugins/IFix.Core.dll", string.Format("./Assets/Resources/{0}{1}.patch.bytes", patchOutputDir, assembly));
             }
 #else
             throw new NotImplementedException();
@@ -813,24 +815,43 @@ namespace IFix.Editor
             AssetDatabase.Refresh();
         }
 
+        static string _GetDllPath(string assembly)
+        {
+            if(string.IsNullOrEmpty(targetAssembliesFolder))
+            {
+                targetAssembliesFolder = GetScriptAssembliesFolder();
+            }
+            var dll = string.Format("./Library/{0}/{1}.dll", targetAssembliesFolder, assembly);
+            if (File.Exists(dll) == false)
+            {
+                dll = string.Format("./Assets/MyLib/{0}.dll", assembly);
+                if (File.Exists(dll) == false)
+                {
+                    throw new Exception("can not find dll: " + assembly);
+                }
+            }
+            return dll;
+        }
+
         [MenuItem("InjectFix/Fix", false, 2)]
         public static void Patch()
         {
             EditorUtility.DisplayProgressBar("Generate Patch for Edtior", "patching...", 0);
             try
             {
-                foreach (var assembly in injectAssemblys)
-                {
-                    var assembly_path = string.Format("./Library/{0}/{1}.dll", GetScriptAssembliesFolder(), assembly);
-                    GenPatch(assembly, assembly_path, "./Assets/Plugins/IFix.Core.dll",
-                        string.Format("{0}.patch.bytes", assembly));
-                }
+	            foreach (var assembly in injectAssemblys)
+	            {
+                    var dll = _GetDllPath(assembly);
+	                GenPatch(assembly, dll, 
+	                    "./Assets/Plugins/IFix.Core.dll", string.Format("./Assets/Resources/{0}.patch.bytes", assembly));
+	            }
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogError(e);
             }
             EditorUtility.ClearProgressBar();
+            UnityEditor.EditorUtility.DisplayDialog("Patch", "finished", "OK");
         }
 
 #if UNITY_2018_3_OR_NEWER

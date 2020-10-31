@@ -9,6 +9,7 @@ using UnityEngine;
 using IFix.Core;
 using System.IO;
 using System.Diagnostics;
+using System.Text;
 
 // 跑不同仔细看文档Doc/example.md
 public class Helloworld : MonoBehaviour {
@@ -36,23 +37,54 @@ public class Helloworld : MonoBehaviour {
         //    UnityEngine.Debug.Log("patch Assembly-CSharp-firstpass, using " + sw.ElapsedMilliseconds + " ms");
         //}
         //try to load patch for testdll.dll
-        patch = Resources.Load<TextAsset>("testdll.patch");
+        //patch = Resources.Load<TextAsset>("testdll.patch");
+        //if (patch != null)
+        //{
+        //    UnityEngine.Debug.Log("loading testdll ...");
+        //    var sw = Stopwatch.StartNew();
+        //    try
+        //    {
+        //        PatchManager.Load(new MemoryStream(patch.bytes));
+        //    }
+        //    catch(System.Exception e)
+        //    {
+        //        UnityEngine.Debug.Log("loading testdll error happend: " + e);
+        //    }
+
+        //    UnityEngine.Debug.Log("patch testdll, using " + sw.ElapsedMilliseconds + " ms");
+        //}
+    }
+
+    public void LoadPatch()
+    {
+        var patch = Resources.Load<TextAsset>("testdll.patch");
         if (patch != null)
         {
             UnityEngine.Debug.Log("loading testdll ...");
             var sw = Stopwatch.StartNew();
-            try
-            {
-                PatchManager.Load(new MemoryStream(patch.bytes));
-            }
-            catch(System.Exception e)
-            {
-                UnityEngine.Debug.Log("loading testdll error happend: " + e);
-            }
-
+            PatchManager.Load(new MemoryStream(patch.bytes));
             UnityEngine.Debug.Log("patch testdll, using " + sw.ElapsedMilliseconds + " ms");
+
+            if (m_text)
+            {
+                m_text.text = "patch testdll, using " + sw.ElapsedMilliseconds + " ms";
+            }
         }
-        test();
+    }
+
+    public UnityEngine.UI.Text m_text;
+
+    public void RunTest()
+    {
+        var test = new testdll.Test();
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("cal:");
+        sb.AppendLine("2 + 10 = " + test.Add(2, 10));
+        sb.AppendLine("Min(2, 10) = " + testdll.Test.Min(2, 10));
+        if (m_text)
+        {
+            m_text.text = sb.ToString();
+        }
     }
 
     // [IFix.Patch]

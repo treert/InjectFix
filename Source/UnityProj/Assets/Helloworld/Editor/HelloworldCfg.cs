@@ -9,8 +9,8 @@ using System.Collections.Generic;
 using IFix;
 using System;
 
-//1ã€é…ç½®ç±»å¿…é¡»æ‰“[Configure]æ ‡ç­¾
-//2ã€å¿…é¡»æ”¾Editorç›®å½•
+//1¡¢ÅäÖÃÀà±ØĞë´ò[Configure]±êÇ©
+//2¡¢±ØĞë·ÅEditorÄ¿Â¼
 [Configure]
 public class HelloworldCfg
 {
@@ -19,21 +19,16 @@ public class HelloworldCfg
     {
         get
         {
-            return new List<Type>()
-            {
-                // typeof(Helloworld),
-                typeof(testdll.Test),
-                //typeof(IFix.Test.Calculator),
-                //AnotherClassåœ¨Pro Standard Assetsä¸‹ï¼Œä¼šç¼–è¯‘åˆ°Assembly-CSharp-firstpass.dllä¸‹ï¼Œç”¨æ¥æ¼”ç¤ºå¤šdllçš„ä¿®å¤
-                //typeof(AnotherClass),
-            };
-        }
-    }
+            return typeof(testdll.Test).Assembly.GetTypes();
 
-    [IFix.Filter]
-    static bool Filter(System.Reflection.MethodInfo methodInfo)
-    {
-        return methodInfo.DeclaringType.FullName == "IFix.Test.Calculator" 
-            && (methodInfo.Name == "Div" || methodInfo.Name == "Mult");
+            //return new List<Type>()
+            //{
+            //    // typeof(Helloworld),
+            //    typeof(testdll.Test),
+            //    typeof(IFix.Test.Calculator),
+            //    //AnotherClassÔÚPro Standard AssetsÏÂ£¬»á±àÒëµ½Assembly-CSharp-firstpass.dllÏÂ£¬ÓÃÀ´ÑİÊ¾¶àdllµÄĞŞ¸´
+            //    typeof(AnotherClass),
+            //};
+        }
     }
 }

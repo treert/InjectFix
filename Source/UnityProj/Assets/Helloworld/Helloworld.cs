@@ -81,6 +81,8 @@ public class Helloworld : MonoBehaviour {
         sb.AppendLine("cal:");
         sb.AppendLine("2 + 10 = " + test.Add(2, 10));
         sb.AppendLine("Min(2, 10) = " + testdll.Test.Min(2, 10));
+        sb.AppendLine("TestStruct() = " + testdll.Test.TestStruct());
+        sb.AppendLine("TestDll2() = " + test.TestDll2());
         if (m_text)
         {
             m_text.text = sb.ToString();

@@ -1,4 +1,4 @@
-@set UNITY_HOME=C:\Program Files\Unity.2018.4.24f1
+@set UNITY_HOME=C:\Program Files\Unity.2018.4.28f1
 if exist "%UNITY_HOME%\Editor\Data\Mono\bin\gmcs" (
     @set GMCS="%UNITY_HOME%\Editor\Data\Mono\bin\gmcs"
 ) else (

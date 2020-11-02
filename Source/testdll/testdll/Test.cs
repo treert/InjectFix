@@ -133,9 +133,8 @@ namespace testdll
             //    ls.Clear(); ls.Add(200);
             //});
 
-            ////必须加CustomBridge
+            //必须加CustomBridge
             //test2dll.Test2.single.Register(TestDll2_func);
-
             test2dll.Test2.single.Register(TestDll2_func_2);
 
             test2dll.Test2.single.Add(m_list, true);

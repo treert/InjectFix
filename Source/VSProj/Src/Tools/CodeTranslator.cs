@@ -1007,8 +1007,6 @@ namespace IFix
 
             methodToId.Add(method, methodId);
 
-            addXID(method, methodId);
-
             if (mode == ProcessMode.Patch && methodId > ushort.MaxValue)
             {
                 throw new OverflowException("too many internal methods");
@@ -1135,17 +1133,15 @@ namespace IFix
                         }
                         else
                         {
-                            // 不打补丁，警告也没有必要
-                            //Console.WriteLine("Warning: not support il[" + msIls[stopPos] + "] in " + method
-                            //    + (caller == null ? "" : (", caller is " + caller)));
+                            Console.WriteLine("Warning: not support il[" + msIls[stopPos] + "] in " + method
+                                + (caller == null ? "" : (", caller is " + caller)));
                             injectMethod(method, allocMethodId(method));
                         }
                     }
                     else
                     {
-                        // 不打补丁，警告也没有必要
-                        //Console.WriteLine("Info: not support il[" + msIls[stopPos] + "] in " + method
-                        //    + (caller == null ? "" : (", caller is " + caller)));
+                        Console.WriteLine("Info: not support il[" + msIls[stopPos] + "] in " + method
+                            + (caller == null ? "" : (", caller is " + caller)));
                     }
 
                     return new MethodIdInfo()
@@ -1986,7 +1982,6 @@ namespace IFix
         private MethodReference Utils_TryAdapterToDelegate_Ref;
 
         private MethodReference idTagCtor_Ref;
-        private MethodReference xidCtor_Ref;
 
         private List<MethodDefinition> wrapperMethods;
 
@@ -2729,10 +2724,6 @@ namespace IFix
                 ilfixAassembly.MainModule.Types.Single(t => t.Name == "IDTagAttribute")
                 .Methods.Single(m => m.Name == ".ctor" && m.Parameters.Count == 1));
 
-            xidCtor_Ref = assembly.MainModule.ImportReference(
-                ilfixAassembly.MainModule.Types.Single(t => t.Name == "XIDAttribute")
-                .Methods.Single(m => m.Name == ".ctor" && m.Parameters.Count == 1));
-
             var objEmptyConstructor = assembly.MainModule.ImportReference(objType.Resolve().Methods.
                 Single(m => m.Name == ".ctor" && m.Parameters.Count == 0));
             var methodAttributes = MethodAttributes.Public
@@ -2867,7 +2858,7 @@ namespace IFix
                 }
                 idMapType = new TypeDefinition("IFix", "IDMAP" + idMapList.Count, TypeAttributes.Public | TypeAttributes.Sealed,
                         enumType);
-                //assembly.MainModule.Types.Add(idMapType);
+                assembly.MainModule.Types.Add(idMapType);
                 idMapType.Fields.Add(new FieldDefinition("value__", FieldAttributes.Public | FieldAttributes.SpecialName
                     | FieldAttributes.RTSpecialName, assembly.MainModule.TypeSystem.Int32));
             }
@@ -3144,18 +3135,6 @@ namespace IFix
             redirectType.Fields.Add(redirectField);
             redirectMemberMap.Add(method, redirectField);
             return redirectField;
-        }
-
-        void addXID(MethodDefinition method, int id)
-        {
-            var newAttr = new CustomAttribute(xidCtor_Ref)
-            {
-                ConstructorArguments =
-                {
-                    new CustomAttributeArgument(assembly.MainModule.TypeSystem.Int32, id)
-                }
-            };
-            method.CustomAttributes.Add(newAttr);
         }
 
         void addIDTag(MethodDefinition method, int id)
@@ -3800,22 +3779,22 @@ namespace IFix
 
                 writer.Write(wrapperMgrImpl.GetAssemblyQualifiedName());
 
-                //TypeDefinition idMap0 = null;
-                //if (idMapList.Count == 0)
-                //{
-                //    if (idMapType == null)
-                //    {
-                //        idMapTypeCheck();
-                //    }
-                //    idMap0 = idMapType;
-                //    idMapType = null;
-                //}
-                //else
-                //{
-                //    idMap0 = idMapList[0];
-                //}
-                //var idMap0Name = idMap0.GetAssemblyQualifiedName();
-                //writer.Write(idMap0Name.Substring("IFix.IDMAP0".Length));
+                TypeDefinition idMap0 = null;
+                if (idMapList.Count == 0)
+                {
+                    if (idMapType == null)
+                    {
+                        idMapTypeCheck();
+                    }
+                    idMap0 = idMapType;
+                    idMapType = null;
+                }
+                else
+                {
+                    idMap0 = idMapList[0];
+                }
+                var idMap0Name = idMap0.GetAssemblyQualifiedName();
+                writer.Write(idMap0Name.Substring("IFix.IDMAP0".Length));
 
                 writer.Write(interpretMethods.Count);
                 //Console.WriteLine("interpretMethods.Count:" + interpretMethods.Count);

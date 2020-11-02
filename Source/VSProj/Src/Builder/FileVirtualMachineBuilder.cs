@@ -24,15 +24,6 @@ namespace IFix.Core
         }
     }
 
-    public class XIDAttribute : Attribute
-    {
-        public int ID;
-        public XIDAttribute(int id)
-        {
-            ID = id;
-        }
-    }
-
     public static class PatchManager
     {
         static Dictionary<Assembly, Action> removers = new Dictionary<Assembly, Action>();
@@ -223,17 +214,6 @@ namespace IFix.Core
             }
             return redirectField;
         }
-
-        static int getMapId(MethodBase method)
-        {
-            var id = Attribute.GetCustomAttribute(method, typeof(XIDAttribute), false) as XIDAttribute;
-            if (id == null)
-            {
-                throw new Exception(string.Format("cat not find IDTagAttribute for {0}", method));
-            }
-            return id.ID;
-        }
-
 
         static int getMapId(List<Type> idMapArray, MethodBase method)
         {
@@ -489,15 +469,15 @@ namespace IFix.Core
                 }
                 virtualMachine.WrappersManager = wrapperManager;
 
-                //var assemblyStr = reader.ReadString();
-                //var idMapList = new List<Type>();
-                //for(int i = 0; i < 100; i++)
-                //{
+                var assemblyStr = reader.ReadString();
+                var idMapList = new List<Type>();
+                for(int i = 0; i < 100; i++)
+                {
 
-                //    var idMapType = Type.GetType("IFix.IDMAP" + i + assemblyStr, false);
-                //    if (idMapType == null) break;
-                //    idMapList.Add(idMapType);
-                //}
+                    var idMapType = Type.GetType("IFix.IDMAP" + i + assemblyStr, false);
+                    if (idMapType == null) break;
+                    idMapList.Add(idMapType);
+                }
 
                 lock (removers)
                 {
@@ -542,8 +522,7 @@ namespace IFix.Core
                     {
                         var fixMethod = readMethod(reader, externTypes);
                         var fixMethodId = reader.ReadInt32();
-                        var pos = getMapId(fixMethod);
-                        //var pos = getMapId(idMapList, fixMethod);
+                        var pos = getMapId(idMapList, fixMethod);
                         methodIdArray[i] = fixMethodId;
                         posArray[i] = pos;
                         if (pos > maxPos)
